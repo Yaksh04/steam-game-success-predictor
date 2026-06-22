@@ -11,7 +11,7 @@ Classes:
 0 - Limited Reach
 1 - Emerging Performer
 2 - Market Success
-3 - Breakout Hit
+3 - High impact
 
 
 2. Reception Score
@@ -55,8 +55,11 @@ def convert_owners(owner_range):
     return None 
 
 
-def create_success_target(df):
 
+# I have converted ownership estimates to percentile based market reach tiers to create a more stable and business-interpretable classification problem
+
+# so basically current success tier measure if a game will perform well in steam ecosystem compared to other games using percentile
+def create_success_target(df):
 
     df["owners_midpoint"] = (
         df["estimated_owners"]
@@ -69,33 +72,33 @@ def create_success_target(df):
     )
 
 
-    def assign_success_tier(owners):
+    df["owner_percentile"] = (
+        df["owners_midpoint"]
+        .rank(
+            pct=True,
+            method="average"
+        )
+    )
 
 
-        if owners < 50000:
+    def assign_tier(percentile):
 
+        if percentile < 0.50:
             return 0
 
-
-        elif owners < 200000:
-
+        elif percentile < 0.80:
             return 1
 
-
-        elif owners < 1000000:
-
+        elif percentile < 0.95:
             return 2
 
-
         else:
-
             return 3
 
 
-
     df["success_tier"] = (
-        df["owners_midpoint"]
-        .apply(assign_success_tier)
+        df["owner_percentile"]
+        .apply(assign_tier)
     )
 
 
@@ -114,6 +117,7 @@ def remove_leakage_columns(df):
 
   leakage_columns = [
     'estimated_owners',
+    'owner_percentile'
     'positive',
     'negative'
   ]
