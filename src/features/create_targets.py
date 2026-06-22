@@ -107,8 +107,19 @@ def create_success_target(df):
 
 
 def create_reception_target(df): 
-  df["reception_score"] = df['positive']/(df['positive'] + df['negative'])
+  df["total_reviews"] = (df["positive"] + df["negative"])
 
+  # review threshold is kept 20 as steam also doesnt consider tiny review counts meaningful
+  df = df[
+      df["total_reviews"] >= 20
+  ]
+
+
+  df["reception_score"] = (
+      df["positive"]
+      /
+      df["total_reviews"]
+  )
   return df
 
 
@@ -117,7 +128,7 @@ def remove_leakage_columns(df):
 
   leakage_columns = [
     'estimated_owners',
-    'owner_percentile'
+    'owner_percentile',
     'positive',
     'negative'
   ]
