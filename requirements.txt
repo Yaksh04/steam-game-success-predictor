@@ -1,0 +1,37 @@
+# data
+numpy
+pandas
+
+
+# ML
+scikit-learn
+xgboost
+
+
+# visualization
+matplotlib
+seaborn
+plotly
+
+
+# notebooks
+jupyter
+ipykernel
+
+
+# explainability
+shap
+
+
+# deployment
+streamlit
+
+
+# utilities
+python-dotenv
+joblib
+tqdm
+
+
+# testing
+pytest

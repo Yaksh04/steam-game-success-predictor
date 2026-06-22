@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+
+
+# environment
+venv/
+.env
+
+
+# notebooks
+.ipynb_checkpoints/
+
+
+# raw data
+data/raw/*
+data/interim/*
+data/processed/*
+
+
+# models
+models/**/*.pkl
+
+
+# system
+.DS_Store
