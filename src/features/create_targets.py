@@ -1,3 +1,34 @@
+"""
+Target Engineering
+
+Creates:
+
+1. Market Reach Tier
+
+Predicts commercial adoption using Steam owner estimates.
+
+Classes:
+0 - Limited Reach
+1 - Emerging Performer
+2 - Market Success
+3 - Breakout Hit
+
+
+2. Reception Score
+
+Predicts expected player satisfaction.
+
+Formula:
+positive_reviews /
+(total_reviews)
+
+
+Important:
+
+Post-launch signals are removed before training
+to prevent data leakage.
+"""
+
 import pandas as pd
 from pathlib import Path
 
