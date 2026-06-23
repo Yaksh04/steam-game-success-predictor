@@ -27,16 +27,23 @@ from sklearn.impute import SimpleImputer
 
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 
+from sklearn.metrics import ConfusionMatrixDisplay
+
+import matplotlib.pyplot as plt
+
 from sklearn.linear_model import LogisticRegression
 
 from sklearn.ensemble import RandomForestClassifier
 
 from xgboost import XGBClassifier
 
+from sklearn.utils.class_weight import compute_sample_weight
+
 import joblib
 
 DATA_PATH = Path("data/processed/steam_games_features.csv")
 MODEL_PATH = Path("models/classifier")
+REPORT_PATH = Path("reports/metrics")
 
 
 # Loading the data
@@ -82,7 +89,6 @@ def split_features_target(df):
 
 
 def train_classifier():
-
     df = load_data()
 
     X, y = split_features_target(df)
@@ -146,28 +152,91 @@ def train_classifier():
         ]
     )
 
-    model = Pipeline(
-        steps=[
-            ("preprocessor", preprocessor),
-            ("classifier", LogisticRegression(max_iter=1000, class_weight="balanced")),
-        ]
-    )
+    models = {
+        "Logistic Regression": LogisticRegression(
+            max_iter=1000, class_weight="balanced"
+        ),
+        "Random Forest": RandomForestClassifier(
+            n_estimators=300,
+            max_depth=12,
+            class_weight="balanced",
+            random_state=42,
+            n_jobs=-1,
+        ),
+        "XGBoost": XGBClassifier(
+            n_estimators=300,
+            max_depth=6,
+            learning_rate=0.05,
+            objective="multi:softprob",
+            eval_metric="mlogloss",
+            random_state=42,
+        ),
+    }
 
-    print("Training Logistic Regression...")
+    # Training and evaluation pipeline
+    results = []
+    best_model = None
+    best_score = 0
 
-    model.fit(X_train, y_train)
+    # adding sample weights for XGBoost
+    sample_weights = compute_sample_weight(class_weight="balanced", y=y_train)
 
-    predictions = model.predict(X_test)
+    for name, classifier in models.items():
 
-    accuracy = accuracy_score(y_test, predictions)
+        print("\nTraining:", name)
 
-    macro_f1 = f1_score(y_test, predictions, average="macro")
+        model = Pipeline(
+            steps=[("preprocessor", preprocessor), ("classifier", classifier)]
+        )
 
-    print("Accuracy:", accuracy)
+        if name == "XGBoost":
+            model.fit(X_train, y_train, classifier__sample_weight=sample_weights)
 
-    print("Macro F1:", macro_f1)
+        else:
+            model.fit(X_train, y_train)
 
-    print(classification_report(y_test, predictions))
+        preds = model.predict(X_test)
+
+        acc = accuracy_score(y_test, preds)
+
+        f1 = f1_score(y_test, preds, average="macro")
+
+        results.append({"model": name, "accuracy": acc, "macro_f1": f1})
+
+        print(classification_report(y_test, preds))
+
+        if f1 > best_score:
+
+            best_score = f1
+
+            best_model = model
+
+            best_predictions = preds
+
+            best_name = name
+
+    results_df = pd.DataFrame(results)
+
+    REPORT_PATH.mkdir(parents=True, exist_ok=True)
+    results_df.to_csv(REPORT_PATH / "classifier_results.csv", index=False)
+
+    print(results_df)
+    print("Metrics saved")
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    ConfusionMatrixDisplay.from_predictions(y_test, best_predictions, ax=ax)
+
+    plt.title(f"{best_name} Confusion Matrix")
+
+    Path("reports/figures").mkdir(parents=True, exist_ok=True)
+
+    plt.savefig("reports/figures/classifier_confusion_matrix.png", bbox_inches="tight")
+
+    MODEL_PATH.mkdir(exist_ok=True)
+
+    joblib.dump(best_model, MODEL_PATH / "best_classifier.pkl")
+    print("Best model saved")
 
 
 if __name__ == "__main__":
