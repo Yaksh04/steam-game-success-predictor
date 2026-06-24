@@ -103,7 +103,6 @@ def train_classifier():
 
     numeric_features = [
         "price",
-        "genre_count",
         "platform_count",
         "release_year",
         "release_month",
@@ -112,12 +111,24 @@ def train_classifier():
         "log_developer_previous_games",
         "developer_previous_success",
         "developer_previous_reception",
+        "publisher_previous_games",
+        "log_publisher_previous_games",
+        "publisher_previous_success",
+        "publisher_previous_reception",
         "language_count",
         "log_languages",
-        "tag_count",
         "achievement_count",
         "log_achievements",
     ]
+
+    # adding genre features in numeric features after encoding in build_features.py
+    genre_features = [col for col in X.columns if col.startswith("genre_")]
+    numeric_features += genre_features
+
+    # adding tag features after encoding them in build_features.py
+    tag_features = [col for col in X.columns if col.startswith("tag_")]
+    numeric_features += tag_features
+
     # Binary features are also numeric as they are already encoded
     numeric_features += [
         "is_free",
@@ -125,6 +136,7 @@ def train_classifier():
         "mac",
         "linux",
         "new_developer",
+        "new_publisher",
         "has_achievements",
     ]
     categorical_features = ["price_category"]
@@ -195,6 +207,14 @@ def train_classifier():
         else:
             model.fit(X_train, y_train)
 
+        # Check for overfitting
+        train_preds = model.predict(X_train)
+
+        train_f1 = f1_score(y_train, train_preds, average="macro")
+
+        print("Train Macro F1:", train_f1)
+
+        # prediction
         preds = model.predict(X_test)
 
         acc = accuracy_score(y_test, preds)

@@ -11,6 +11,7 @@ avoid data leakage.
 
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import MultiLabelBinarizer
 import ast
 
 from pathlib import Path
@@ -39,6 +40,19 @@ def create_genre_features(df):
     df["genres"] = df["genres"].apply(parse_list)
 
     df["genre_count"] = df["genres"].apply(len)
+
+    # Encoding genres to be used late in model
+    mlb = MultiLabelBinarizer()
+
+    genre_encoded = mlb.fit_transform(df["genres"])
+
+    genre_df = pd.DataFrame(
+        genre_encoded,
+        columns=["genre_" + genre for genre in mlb.classes_],
+        index=df.index,
+    )
+
+    df = pd.concat([df, genre_df], axis=1)
 
     return df
 
@@ -115,11 +129,22 @@ def create_language_features(df):
 
 
 # Create tag feature which represents market positioning
+# top 50 Tag features are now encoded to improve the model
 def create_tag_features(df):
 
     df["tags"] = df["tags"].apply(parse_list)
 
     df["tag_count"] = df["tags"].apply(len)
+
+    all_tags = df["tags"].explode().value_counts()
+
+    top_tags = all_tags.head(50).index.tolist()
+
+    for tag in top_tags:
+
+        column_name = "tag_" + tag.replace(" ", "_").replace("-", "_")
+
+        df[column_name] = df["tags"].apply(lambda x: int(tag in x))
 
     return df
 
@@ -178,6 +203,39 @@ def create_developer_features(df):
     return df
 
 
+# Create publisher features, similar logic as developer features
+# Publisher features created after seeing model results to improve the models
+def create_publisher_features(df):
+
+    df["publishers"] = df["publishers"].apply(parse_list)
+
+    df["main_publisher"] = df["publishers"].apply(
+        lambda x: x[0] if len(x) > 0 else "Unknown"
+    )
+
+    df = df.sort_values("release_date")
+
+    df["publisher_previous_games"] = df.groupby("main_publisher").cumcount()
+
+    df["publisher_previous_success"] = df.groupby("main_publisher")[
+        "success_tier"
+    ].transform(lambda x: x.shift().expanding().mean())
+
+    df["publisher_previous_reception"] = df.groupby("main_publisher")[
+        "reception_score"
+    ].transform(lambda x: x.shift().expanding().mean())
+
+    df["new_publisher"] = (df["publisher_previous_games"] == 0).astype(int)
+
+    df[["publisher_previous_success", "publisher_previous_reception"]] = df[
+        ["publisher_previous_success", "publisher_previous_reception"]
+    ].fillna(0)
+
+    df["log_publisher_previous_games"] = np.log1p(df["publisher_previous_games"])
+
+    return df
+
+
 # full feature engineering pipeline
 def build_features():
 
@@ -194,6 +252,8 @@ def build_features():
     df = create_release_features(df)
 
     df = create_developer_features(df)
+
+    df = create_publisher_features(df)
 
     df = create_language_features(df)
 
