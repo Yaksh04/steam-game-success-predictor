@@ -6,12 +6,14 @@ The goal of the commercial success classifier is to predict a Steam game's marke
 
 The model predicts four classes:
 
+
 | Class | Meaning       |
 | ----- | ------------- |
 | 0     | Limited Reach |
 | 1     | Niche Success |
 | 2     | Successful    |
 | 3     | Breakout Hit  |
+
 
 The main evaluation metric is **Macro F1 Score** instead of accuracy because Steam success distribution is naturally imbalanced.
 
@@ -59,16 +61,18 @@ Example:
 350000 owners
 ```
 
-2. Assigned success tiers based on distribution.
+1. Assigned success tiers based on distribution.
 
 Final target distribution:
 
-| Tier          |  Count |
-| ------------- | -----: |
+
+| Tier          | Count  |
+| ------------- | ------ |
 | Limited Reach | 23,502 |
-| Niche Success |  8,177 |
-| Successful    |  7,630 |
-| Breakout Hit  |  5,191 |
+| Niche Success | 8,177  |
+| Successful    | 7,630  |
+| Breakout Hit  | 5,191  |
+
 
 This preserves the real-world long-tail nature while keeping enough samples for learning.
 
@@ -82,6 +86,7 @@ A strict leakage audit was performed.
 
 The following features were excluded:
 
+
 | Feature          | Reason                       |
 | ---------------- | ---------------------------- |
 | Positive reviews | Available only after release |
@@ -90,6 +95,7 @@ The following features were excluded:
 | Owners           | Used to create target        |
 | Player count     | Post-launch popularity       |
 | Playtime         | Requires released game       |
+
 
 The model only uses features realistically available before or during launch.
 
@@ -158,11 +164,13 @@ Feature count:
 
 ## Results
 
+
 | Model               | Accuracy | Macro F1 |
-| ------------------- | -------: | -------: |
-| Logistic Regression |    0.511 |    0.428 |
-| Random Forest       |    0.544 |    0.470 |
-| XGBoost             |    0.537 |    0.472 |
+| ------------------- | -------- | -------- |
+| Logistic Regression | 0.511    | 0.428    |
+| Random Forest       | 0.544    | 0.470    |
+| XGBoost             | 0.537    | 0.472    |
+
 
 ---
 
@@ -242,10 +250,12 @@ After:
 
 Best model: XGBoost
 
+
 | Version          | Macro F1 |
-| ---------------- | -------: |
-| Metadata only    |    0.472 |
-| + Genre encoding |    0.483 |
+| ---------------- | -------- |
+| Metadata only    | 0.472    |
+| + Genre encoding | 0.483    |
+
 
 Improvement:
 
@@ -340,11 +350,13 @@ After:
 
 ## Results
 
+
 | Version       | Macro F1 |
-| ------------- | -------: |
-| Metadata only |    0.472 |
-| + Genres      |    0.483 |
-| + Tags        |    0.507 |
+| ------------- | -------- |
+| Metadata only | 0.472    |
+| + Genres      | 0.483    |
+| + Tags        | 0.507    |
+
 
 Improvement:
 
@@ -429,12 +441,14 @@ After:
 
 ## Results
 
+
 | Version             | Macro F1 |
-| ------------------- | -------: |
-| Metadata baseline   |    0.472 |
-| + Genres            |    0.483 |
-| + Tags              |    0.507 |
-| + Publisher history |    0.516 |
+| ------------------- | -------- |
+| Metadata baseline   | 0.472    |
+| + Genres            | 0.483    |
+| + Tags              | 0.507    |
+| + Publisher history | 0.516    |
+
 
 ---
 
@@ -505,12 +519,14 @@ Reasons:
 
 ## Class Performance
 
-| Class         | Precision | Recall |   F1 |
-| ------------- | --------: | -----: | ---: |
-| Limited Reach |      0.78 |   0.69 | 0.73 |
-| Niche Success |      0.30 |   0.34 | 0.32 |
-| Successful    |      0.38 |   0.38 | 0.38 |
-| Breakout Hit  |      0.57 |   0.72 | 0.64 |
+
+| Class         | Precision | Recall | F1   |
+| ------------- | --------- | ------ | ---- |
+| Limited Reach | 0.78      | 0.69   | 0.73 |
+| Niche Success | 0.30      | 0.34   | 0.32 |
+| Successful    | 0.38      | 0.38   | 0.38 |
+| Breakout Hit  | 0.57      | 0.72   | 0.64 |
+
 
 ---
 
@@ -571,3 +587,37 @@ Focus:
 - Reduce overfitting
 - Improve middle tier classification
 - Maintain breakout hit detection performance
+
+# Hyperparameter Tuning Results
+
+RandomizedSearchCV was used with:
+
+- 30 iterations
+- 3-fold cross validation
+- Macro F1 optimization
+
+## Final Tuned XGBoost
+
+Accuracy:
+
+0.600
+
+Macro F1:
+
+0.532
+
+Best parameters:
+
+n_estimators = 457
+
+max_depth = 7
+
+learning_rate = 0.075
+
+subsample = 0.916
+
+colsample_bytree = 0.743
+
+Final observations:
+
+The tuned model improved overall classification balance while maintaining strong breakout-game identification.

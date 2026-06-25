@@ -88,19 +88,8 @@ def split_features_target(df):
     return X, y
 
 
-def train_classifier():
-    df = load_data()
-
-    X, y = split_features_target(df)
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )  # stratify preserves the class distribution
-
-    print("Training samples:", X_train.shape)
-
-    print("Testing samples:", X_test.shape)
-
+# sepererate preprocessor function to make model tuning easy
+def build_preprocessor(X):
     numeric_features = [
         "price",
         "platform_count",
@@ -163,6 +152,25 @@ def train_classifier():
             ("cat", categorical_transformer, categorical_features),
         ]
     )
+
+    return preprocessor
+
+
+def train_classifier():
+    df = load_data()
+
+    X, y = split_features_target(df)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )  # stratify preserves the class distribution
+
+    print("Training samples:", X_train.shape)
+
+    print("Testing samples:", X_test.shape)
+
+    # refactored the pipeline by building seperate preprocessor function so that same function can be used in hyper-parameter tuning
+    preprocessor = build_preprocessor(X)
 
     models = {
         "Logistic Regression": LogisticRegression(
