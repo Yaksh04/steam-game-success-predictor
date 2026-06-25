@@ -62,6 +62,7 @@ def split_features_target(df):
         "reception_score",
         # leakage
         "owners_midpoint",
+        "owner_percentile",
         "estimated_owners",
         "positive",
         "negative",

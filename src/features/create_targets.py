@@ -96,7 +96,7 @@ def create_reception_target(df):
 # function to remove post launch features
 def remove_leakage_columns(df):
 
-    leakage_columns = ["estimated_owners", "owner_percentile", "positive", "negative"]
+    leakage_columns = ["estimated_owners", "positive", "negative"]
 
     df = df.drop(columns=leakage_columns)
 
