@@ -75,7 +75,7 @@ def fix_numeric(df):
     for col in numeric_cols:
         df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        return df
+    return df
 
 
 # function to remove impossible games

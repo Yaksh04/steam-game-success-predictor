@@ -6,12 +6,12 @@ The goal of this experiment was to evaluate whether Steam game success predictio
 
 The existing classifier predicts:
 
-| Class | Meaning       |
-| ----- | ------------- |
-| 0     | Limited Reach |
-| 1     | Niche Success |
-| 2     | Successful    |
-| 3     | Breakout Hit  |
+| Class | Meaning        |
+| ----- | -------------- |
+| 0     | Limited Reach  |
+| 1     | Niche Success  |
+| 2     | Market success |
+| 3     | Breakout Hit   |
 
 However, Steam success is naturally continuous:
 
